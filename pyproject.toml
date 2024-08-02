@@ -1,8 +1,28 @@
-[build-system]
-requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5"]
-build-backend = "setuptools.build_meta"
+[tool.poetry]
+name = "pdnssoc-cli"
+version = "0.0.6"
+description = "Correlate dnstap files with MISP"
+authors = ["safer-trust <developers@safer-trust.org>"]
+packages = [{include = "pdnssoccli"}]
+readme = "README.md"
 
-[tool.setuptools_scm]
-# For smarter version schemes and other configuration options,
-# check out https://github.com/pypa/setuptools_scm
-version_scheme = "no-guess-dev"
+[tool.poetry.dependencies]
+python = "^3.10"
+aiofiles = "*"
+ipaddress = "*"
+schedule = "*"
+pytz = "*"
+jinja2 = "*"
+pymisp = "*"
+click = "*"
+cachetools = "*"
+requests = "*"
+jsonlines = "*"
+pyyaml = "^6.0.1"
+
+[tool.poetry.scripts]
+pdnssoc-cli = "pdnssoccli.pdnssoccli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

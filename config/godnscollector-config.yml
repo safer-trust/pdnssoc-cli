@@ -1,0 +1,83 @@
+################################################
+# Collector configuration
+################################################
+global:
+  pid-file: "/var/dnscollector/collector.pid"
+  trace:
+    verbose: true
+  server-identity: "pDNSSOC_C"
+  text-format: "timestamp-rfc3339ns qr identity operation rcode queryip queryport protocol qname qtype name"
+  # default text field delimiter
+  text-format-delimiter: " "
+  # default text field boundary
+  text-format-boundary: "\""
+
+pipelines:
+ - name: dnstap-rns2a-lbnl59
+   file-ingestor:
+        watch-dir: /var/pdnssoc_input/rns2a-lbnl59
+        watch-mode: dnstap
+        delete-after: true
+   transforms:
+     filtering:
+        log-queries: false
+        log-replies: true
+        drop-queryip-file: /root/dns_servers.txt
+   routing-policy:
+        forward: [ filelogdomains, filelogips, fileall ]     
+
+ - name: dnstap-rns2-lbnl59
+   file-ingestor:
+        watch-dir: /var/pdnssoc_input/rns2-lbnl59
+        watch-mode: dnstap
+        delete-after: true
+   transforms:
+     filtering:
+        log-queries: false
+        log-replies: true
+        drop-queryip-file: /root/dns_servers.txt
+   routing-policy:
+        forward: [ filelogdomains, filelogips, fileall ]
+
+ - name: dnstap-rns1-lbnl59
+   file-ingestor:
+        watch-dir: /var/pdnssoc_input/rns1-lbnl59
+        watch-mode: dnstap
+        delete-after: true
+   transforms:
+     filtering:
+        log-queries: false
+        log-replies: true
+        drop-queryip-file: /root/dns_servers.txt
+   routing-policy:
+        forward: [ filelogdomains, filelogips, fileall ]
+
+
+ - name: filelogdomains
+   logfile:
+    file-path: /var/dnscollector/matches/matches_domains.json
+    mode: json
+   transforms:
+     filtering:
+      keep-fqdn-file: '/var/dnscollector/misp_domains.txt'
+
+ - name: filelogips
+   logfile:
+        file-path: /var/dnscollector/matches/matches_ips.json
+        mode: json
+   transforms:
+     filtering:
+      keep-rdata-file: '/var/dnscollector/misp_ips.txt'
+
+ - name: fileall
+   logfile:
+        file-path: /var/dnscollector/queries/queries.json
+        mode: json
+        flush-interval: 1
+        # Tune the size and number of files used for retro searches here:
+        max-size: 200
+        max-files: 15
+        chan-buffer-size: 65535
+        postrotate-delete-success: true
+
+

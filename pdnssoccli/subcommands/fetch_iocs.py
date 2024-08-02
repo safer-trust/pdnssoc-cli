@@ -7,8 +7,6 @@ from pdnssoccli.utils import file as pdnssoc_file_utils
 
 logger = logging.getLogger(__name__)
 
-
-
 @click.command(help="Fetch IOCs from intelligence sources")
 @click.option(
     'logging_level',
@@ -37,7 +35,6 @@ logger = logging.getLogger(__name__)
 @click.pass_context
 def fetch_iocs(ctx,
     **kwargs):
-
     correlation_config = ctx.obj['CONFIG']['correlation']
 
     # Set up MISP connections
@@ -150,7 +147,7 @@ def fetch_iocs(ctx,
 
     if domains_file.is_file():
         # File exists, let's try to update it
-        domains_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_domains_file']))
+        domains_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_domains_file']), delete_after_read=False)
         for domain in domains_iter:
             domain_attributes_old.append(domain.strip())
 
@@ -166,7 +163,7 @@ def fetch_iocs(ctx,
 
     if ips_file.is_file():
         # File exists, let's try to update it
-        ips_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_ips_file']))
+        ips_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_ips_file']), delete_after_read=False)
         for ip in ips_iter:
             ips_attributes_old.append(ip.strip())
 
@@ -177,4 +174,6 @@ def fetch_iocs(ctx,
                 fp.write("{}\n".format(attribute))
 
     logger.debug("Finished fetching of IOCs")
-    logger.info("Currently {} domains and {} ips".format(len(set(domain_attributes_new).union(set(domain_attributes_new))), len(set(ips_attributes_new).union(set(ips_attributes_old)))))
+    logger.info("Loaded {} domains and {} ips".format(len(set(domain_attributes_new).union(set(domain_attributes_new))), len(set(ips_attributes_new).union(set(ips_attributes_old)))))
+    if not len(set(domain_attributes_new)):
+            logger.error("No domain could be downloaded from MISP!")

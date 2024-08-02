@@ -5,7 +5,6 @@ import logging
 import yaml
 from pdnssoccli.subcommands.fetch_iocs import fetch_iocs
 from pdnssoccli.subcommands.correlate import correlate
-from pdnssoccli.subcommands.daemonize import daemonize
 from pdnssoccli.subcommands.alert import alert
 from pdnssoccli.subcommands.utils import make_sync
 
@@ -47,16 +46,16 @@ def main(ctx,
 
     # Configure logging
     logging.basicConfig(
-        level=ctx.obj['CONFIG']['logging_level']
+        level=ctx.obj['CONFIG']['logging_level'],
+        format='%(asctime)s %(levelname)s:%(name)s:%(message)s'
     )
-
     pymisp_logger = logging.getLogger("pymisp")
-    pymisp_logger.setLevel(ctx.obj['CONFIG']['logging_level'])
+#    pymisp_logger.setLevel(ctx.obj['CONFIG']['logging_level'])
+    logging.getLogger('pymisp').setLevel(logging.WARNING)
 
 
 main.add_command(correlate)
 main.add_command(fetch_iocs)
-main.add_command(daemonize)
 main.add_command(alert)
 
 if __name__ == "__main__":

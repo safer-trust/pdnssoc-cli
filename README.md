@@ -11,7 +11,12 @@ This tool parses JSON and compressed files created by [go-dnscollector](https://
 
 ### PyPi
 ```bash
-pip install pdnssoc-cli
+python3 -m venv venv && \
+source venv/bin/activate && \ 
+pip3 install -U pip
+
+pip3 install git+https://github.com/safer-trust/pdnssoc-cli.git@topic/packaging
+
 ```
 
 
