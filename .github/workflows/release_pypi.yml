@@ -1,45 +1,20 @@
-name: Release on pypi
-
 on:
   push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-
-defaults:
-  run:
-    shell: bash
+    branches:
+      - main
 
 jobs:
-  package-build:
-    name: Release to pypi
+  pypi-publish:
+    name: upload release to PyPI
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/pdnssoc-cli
+    # Specifying a GitHub environment is optional, but strongly encouraged
+    environment: release
     permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
-
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
-
-      # Setup Python (faster than using Python container)
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.11"
-
-      - name: Install pipenv
-        run: |
-          python -m pip install --upgrade pipenv wheel
-
-      - name: Setup pipenv
-        run: pipenv install && pipenv install --dev
-
-      - name: Build package
-        run: pipenv run tox -e clean,build
+      # retrieve your distributions here
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url:  https://upload.pypi.org/legacy/
+        

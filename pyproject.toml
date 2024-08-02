@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "pdnssoc-cli"
-version = "0.0.6"
+name = "pdnssoc"
+version = "0.0.1"
 description = "Correlate dnstap files with MISP"
 authors = ["safer-trust <developers@safer-trust.org>"]
 packages = [{include = "pdnssoccli"}]
