@@ -10,24 +10,11 @@ jobs:
   pypi-publish:
     name: Upload release to PyPI
     runs-on: ubuntu-latest
-    environment: release
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pdnssoc
     permissions:
       id-token: write
-    if: github.event.pull_request.merged == true
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: pip install poetry
-
-      - name: Build the package
-        run: poetry build
-
-      - name: Publish package distributions to PyPI
-        uses: poetry publish
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
