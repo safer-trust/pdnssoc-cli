@@ -42,6 +42,5 @@ Options:
 Commands:
   alert       Raise alerts for spotted incidents
   correlate   Correlate input files and output matches
-  daemonize   Run in daemonized mode according to configuration
   fetch-iocs  Fetch IOCs from intelligence sources
 ```
