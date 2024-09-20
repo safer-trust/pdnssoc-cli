@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "pdnssoc"
+version = "0.0.1"
+description = "Correlate dnstap files with MISP"
+authors = ["safer-trust <developers@safer-trust.org>"]
+packages = [{include = "pdnssoccli"}]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiofiles = "*"
+ipaddress = "*"
+schedule = "*"
+pytz = "*"
+jinja2 = "*"
+pymisp = "*"
+click = "*"
+cachetools = "*"
+requests = "*"
+jsonlines = "*"
+pyyaml = "^6.0.1"
+
+[tool.poetry.scripts]
+pdnssoc-cli = "pdnssoccli.pdnssoccli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

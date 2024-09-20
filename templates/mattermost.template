@@ -1,0 +1,18 @@
+:unicorn_face: pDNSSOC alert: 
+{% for event in events %}
+- **Organization**: {{ event['organization'] }} 
+- **Event name**: [{{ event['info'] }}]({{ event['event_url'] }}) 
+- **Tags**: {% for tag in event['tags'][:3] %} "{{ tag['name'].replace('"', '\\"')}}", 
+{% endfor %}
+
+
+- **IOC**: `{{ event['ioc'].replace('.', '[.]') }}` ({{ event['ioc_type'] }})
+- **MISP IOC date**: {{ event['publication'] }}
+- **MISP IOC Comment**: {{ event['comment'] }}
+{% endfor %}
+
+**Detection**:
+- **Timestamp:** {{ match['timestamp'] }} 
+- **Client:** `{{ socket.gethostbyaddr(match['client_ip'])[0] }}` (`{{ match['client_ip'] }}`)
+- **Query:** `{{ match['query'].replace('.', '[.]') }}`
+- **Answer:** `{{ answer.replace('.', '[.]') }}`

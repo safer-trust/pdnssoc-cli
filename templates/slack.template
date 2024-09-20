@@ -1,0 +1,17 @@
+:unicorn_face: [pDNSSOC]: 
+{% for event in events %}
+[{{ event['organization'] }}] <{{ event['event_url'] }}|{{ event['info'] }}>
+*tags*: {% for tag in event['tags'][:3] %} "{{ tag['name'].replace('"', '\\"')}}", 
+{% endfor %}
+
+
+- *IOC*: `{{ event['ioc'].replace('.', '[.]') }}` ({{ event['ioc_type'] }})
+- *MISP IOC date*: {{ event['publication'] }}
+- *MISP IOC Comment*: {{ event['comment'] }}
+{% endfor %}
+
+*Detection*:
+*Timestamp:* {{ match['timestamp'] }} 
+*Client:* `{{ socket.gethostbyaddr(match['client_ip'])[0] }}` (`{{ match['client_ip'] }}`)
+*Query:* `{{ match['query'].replace('.', '[.]') }}`
+*Answer:* `{{ answer.replace('.', '[.]') }}`
