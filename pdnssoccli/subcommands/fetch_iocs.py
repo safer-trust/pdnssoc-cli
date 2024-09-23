@@ -4,6 +4,7 @@ import logging
 from pymisp import PyMISP
 from pathlib import Path
 from pdnssoccli.utils import file as pdnssoc_file_utils
+from pdnssoccli.utils import time as pdnssoc_time_utils
 
 logger = logging.getLogger(__name__)
 
@@ -36,86 +37,40 @@ logger = logging.getLogger(__name__)
 def fetch_iocs(ctx,
     **kwargs):
     correlation_config = ctx.obj['CONFIG']['correlation']
+    TYPE_ATTRIBUTES =[ 'domain', 'domain|ip', 'hostname', 'hostname|port', 'ip-src', 'ip-src|port', 'ip-dst', 'ip-dst|port', ]
 
     # Set up MISP connections
-    misp_connections = []
     for misp_conf in ctx.obj['CONFIG']["misp_servers"]:
         misp = PyMISP(misp_conf['domain'], misp_conf['api_key'], misp_conf['verify_ssl'], debug=misp_conf['debug'])
-        if misp:
-            misp_connections.append((misp, misp_conf['args'], misp_conf['periods']['tags']))
+        tags = None
+        if 'tags' in misp_conf['periods'] and misp_conf['periods']['tags']:
+            tags = misp_conf['periods']['tags']
+    
+        args = misp_conf['args']
 
-    domain_attributes_old = []
-    domain_attributes_new = []
-    ips_attributes_new = []
-    ips_attributes_old = []
-
-
-    # Get new attributes
-    for misp, args, tag_periods in misp_connections:
-        ips_to_validate = set()
-
-        attributes = []
-
-        # Keep configured tag names to exclude them from catch all
-        configured_tags = []
-
-        for tag in tag_periods:
-            configured_tags.extend(tag['names'])
-
-            if tag['delta']:
-                misp_timestamp = datetime.utcnow() - timedelta(**tag['delta'])
-            else:
-                misp_timestamp=None
-
-
-            tag_attributes = misp.search(
-                controller='attributes',
-                type_attribute=[
-                    'domain',
-                    'domain|ip',
-                    'hostname',
-                    'hostname|port',
-                    'ip-src',
-                    'ip-src|port',
-                    'ip-dst',
-                    'ip-dst|port',
-                ],
-                to_ids=1,
-                pythonify=True,
-                tags=tag['names'],
-                timestamp=misp_timestamp,
-                **args
-            )
-
-            attributes.extend(tag_attributes)
+        domain_attributes_old, domain_attributes_new, ips_attributes_new, ips_attributes_old, attributes = [], [], [], [], []
 
         # Fetch catch all
-
-        if misp_conf['periods']['generic']['delta']:
-            misp_timestamp = datetime.utcnow() - timedelta(**misp_conf['periods']['generic']['delta'])
+        if 'date' in misp_conf['periods'] and misp_conf['periods']["date"]:
+            date_search = pdnssoc_time_utils.convert_date_to_timestamp(misp_conf['periods']['date'])
         else:
-            misp_timestamp=None
+            # Default search is 30 days
+            date_search=pdnssoc_time_utils.convert_date_to_timestamp("30d")
 
         catch_all_attributes = misp.search(
             controller='attributes',
-            type_attribute=[
-                'domain',
-                'domain|ip',
-                'hostname',
-                'hostname|port',
-                'ip-src',
-                'ip-src|port',
-                'ip-dst',
-                'ip-dst|port',
-            ],
+            type_attribute=TYPE_ATTRIBUTES,
             to_ids=1,
             pythonify=True,
-            tags=["!" + tag for tag in configured_tags],
-            timestamp=misp_timestamp,
+            tags=tags,
+            timestamp=date_search,
             **args
         )
 
         attributes.extend(catch_all_attributes)
+
+        # Get new attributes
+        ips_to_validate = set()
 
         for attribute in attributes:
             # Put to bucket according to attribute type
@@ -141,39 +96,41 @@ def fetch_iocs(ctx,
             res = [i for i in list(ips_to_validate) if i not in warn_matches.keys()]
             ips_attributes_new.extend(res)
 
-    # Check if domain ioc files already exist
-    domains_file_path = correlation_config['malicious_domains_file']
-    domains_file = Path(domains_file_path)
+        # Check if domain ioc files already exist
+        domains_file_path = correlation_config['malicious_domains_file']
+        domains_file = Path(domains_file_path)
 
-    if domains_file.is_file():
-        # File exists, let's try to update it
-        domains_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_domains_file']), delete_after_read=False)
-        for domain in domains_iter:
-            domain_attributes_old.append(domain.strip())
+        if domains_file.is_file():
+            # File exists, let's try to update it
+            domains_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_domains_file']), delete_after_read=False)
+            for domain in domains_iter:
+                domain_attributes_old.append(domain.strip())
 
-    if set(domain_attributes_old) != set(domain_attributes_new):
-        # We spotted a difference, let's overwrite the existing file
-        with pdnssoc_file_utils.write_generic(domains_file) as fp:
-            for attribute in list(set(domain_attributes_new)):
-                fp.write("{}\n".format(attribute))
+        if set(domain_attributes_old) != set(domain_attributes_new):
+            # We spotted a difference, let's overwrite the existing file
+            with pdnssoc_file_utils.write_generic(domains_file) as fp:
+                for attribute in list(set(domain_attributes_new)):
+                    fp.write("{}\n".format(attribute))
 
-    # Check if ip ioc files already exist
-    ips_file_path = correlation_config['malicious_ips_file']
-    ips_file = Path(ips_file_path)
+        # Check if ip ioc files already exist
+        ips_file_path = correlation_config['malicious_ips_file']
+        ips_file = Path(ips_file_path)
 
-    if ips_file.is_file():
-        # File exists, let's try to update it
-        ips_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_ips_file']), delete_after_read=False)
-        for ip in ips_iter:
-            ips_attributes_old.append(ip.strip())
+        if ips_file.is_file():
+            # File exists, let's try to update it
+            ips_iter, _ = pdnssoc_file_utils.read_file(Path(correlation_config['malicious_ips_file']), delete_after_read=False)
+            for ip in ips_iter:
+                ips_attributes_old.append(ip.strip())
 
-    if set(ips_attributes_old) != set(ips_attributes_new):
-        # We spotted a difference, let's overwrite the existing file
-        with pdnssoc_file_utils.write_generic(ips_file) as fp:
-            for attribute in list(set(ips_attributes_new)):
-                fp.write("{}\n".format(attribute))
+        if set(ips_attributes_old) != set(ips_attributes_new):
+            # We spotted a difference, let's overwrite the existing file
+            with pdnssoc_file_utils.write_generic(ips_file) as fp:
+                for attribute in list(set(ips_attributes_new)):
+                    fp.write("{}\n".format(attribute))
+            logger.info("Loaded {} domains and {} ips".format(len(set(domain_attributes_new).union(set(domain_attributes_new))), len(set(ips_attributes_new).union(set(ips_attributes_old)))))
+        else:
+            logger.info("All attributes already existed, nothing to add")
 
-    logger.debug("Finished fetching of IOCs")
-    logger.info("Loaded {} domains and {} ips".format(len(set(domain_attributes_new).union(set(domain_attributes_new))), len(set(ips_attributes_new).union(set(ips_attributes_old)))))
-    if not len(set(domain_attributes_new)):
-            logger.error("No domain could be downloaded from MISP!")
+        logger.debug("Finished fetching of IOCs")
+        if not len(set(domain_attributes_new)):
+                logger.error("No domain could be downloaded from MISP!")
