@@ -9,15 +9,11 @@ misp_servers:
     args:
       enforce_warninglist: True
     periods:
-      generic:
-        delta:
-          days: 7
+      # Date in MISP DateRestSearchFilter format [S,M,h,d,w,m,Y] or timestamp %Y-%m-%d %H:%M:%S
+      date: 30d
+      # Tags -> None: search all / str: string to search / list: values to search (OR) / dict: {'OR': [list], 'NOT': [list], 'AND': [list]}
       tags:
-      - names:
-          - "apt"
-          - "tlp:amber"
-        delta: 
-          days: 150 
+        - ["tlp:clear"]
 
 correlation:
   input_dir: /var/dnscollector/matches # use this if no files are defined from commmand line
