@@ -15,7 +15,7 @@ python3 -m venv venv && \
 source venv/bin/activate && \ 
 pip3 install -U pip
 
-pip3 install git+https://github.com/safer-trust/pdnssoc-cli.git@topic/packaging
+pip3 install git+https://github.com/safer-trust/pdnssoc-cli.git
 
 ```
 
