@@ -25,10 +25,13 @@ correlation:
   malicious_ips_file: /var/dnscollector/misp_ips.txt
 
 alerting:
-  # method: slack or email
+  # method: slack, mattermost, telegram or email
   slack: 
     hook: "https://hooks.slack.com/services/your_hook"
     template: "/etc/pdnssoccli/slack.template"
+  mattermost: 
+    hook: "https://hooks.mattermost.com/services/your_hook"
+    template: "/etc/pdnssoccli/mattermost.template"
   telegram:
     telegram_bot_token: "0123456789:AAAAA-AAAAA-AAAAAAAAAAA_AAAAAAAAAAA"
     telegram_chat_id: "987654321"
