@@ -234,8 +234,8 @@ def email_alerts(alerts, config, summary = False):
                     msg_alternative.attach(msg_text)
 
                     outgoing_mailbox.append(msg_root)
-            else:
-                logger.warning("Sensor {} not configured for email alerting".format(sensor))
+                else:
+                    logger.warning("Sensor {} not configured for email alerting".format(sensor))
 
 
 
