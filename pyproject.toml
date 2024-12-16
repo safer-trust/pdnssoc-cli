@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "pdnssoc"
-version = "0.0.1"
-description = "Correlate dnstap files with MISP"
+version = "0.0.2"
+description = "Correlate logs with MISP and produces contextualized alerts"
 authors = ["safer-trust <developers@safer-trust.org>"]
 packages = [{include = "pdnssoccli"}]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 aiofiles = "*"
 ipaddress = "*"
 schedule = "*"
