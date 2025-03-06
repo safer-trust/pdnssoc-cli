@@ -7,7 +7,7 @@ misp_servers:
     debug: false 
     # misp.search() arguments
     args:
-      enforce_warninglist: True
+      enforce_warninglist: true
     periods:
       # Date in MISP DateRestSearchFilter format [S,M,h,d,w,m,Y] or timestamp %Y-%m-%d %H:%M:%S
       date: 30d
